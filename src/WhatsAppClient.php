@@ -53,7 +53,7 @@ final class WhatsAppClient
                     'timeout' => $this->timeout,
                     'headers' => $this->buildHeaders(),
                     'json'    => [
-                        'jid'  => $jid,
+                        'to'   => $jid,
                         'text' => $text,
                     ],
                 ]

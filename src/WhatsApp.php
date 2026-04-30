@@ -60,7 +60,7 @@ final class WhatsApp
 
         event(new SendingMessage($message));
 
-        $response = $this->client->send($message->toJid(), $message->content);
+        $response = $this->client->send($message->to, $message->content);
 
         event(new MessageWasSent($message, $response));
 

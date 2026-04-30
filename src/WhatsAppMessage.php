@@ -84,9 +84,9 @@ final class WhatsAppMessage
             $digits = substr($digits, 2);
         }
 
-        // Turkish local number: starts with 0 followed by 5xx
+        // Turkish local number: starts with 0 followed by 5xx  (e.g. 05051234567 → 905051234567)
         if (str_starts_with($digits, '05') && strlen($digits) === 11) {
-            $digits = '9' . ltrim($digits, '0');
+            $digits = '9' . $digits;   // prepend 9, keep the leading 0  →  90 5xxx
         }
 
         // Turkish local without leading zero: 10 digits starting with 5
