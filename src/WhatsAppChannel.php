@@ -3,6 +3,7 @@
 namespace NotificationChannels\WhatsAppBridge;
 
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
 use NotificationChannels\WhatsAppBridge\Exceptions\CouldNotSendNotification;
 
 /**
@@ -16,6 +17,9 @@ use NotificationChannels\WhatsAppBridge\Exceptions\CouldNotSendNotification;
  *
  * Your notifiable model must implement routeNotificationForWhatsAppBridge()
  * returning the phone number when a plain string message is used.
+ *
+ * Failures (bridge unreachable, timeout, etc.) are logged as warnings and
+ * swallowed so they never cause an HTTP 500 in the calling application.
  */
 final class WhatsAppChannel
 {
@@ -29,36 +33,46 @@ final class WhatsAppChannel
     /**
      * Send the given notification.
      *
-     * @throws CouldNotSendNotification
+     * Bridge errors are caught and logged — they never propagate to the caller.
      */
     public function send(mixed $notifiable, Notification $notification): void
     {
-        $message = $notification->toWhatsApp($notifiable);
+        try {
+            $message = $notification->toWhatsApp($notifiable);
 
-        if ($message instanceof WhatsAppMessage) {
-            // If no recipient set on message, pull it from the notifiable
-            if (empty($message->to)) {
-                $to = $notifiable->routeNotificationFor('WhatsAppBridge', $notification);
+            if ($message instanceof WhatsAppMessage) {
+                // If no recipient set on message, pull it from the notifiable
+                if (empty($message->to)) {
+                    $to = $notifiable->routeNotificationFor('WhatsAppBridge', $notification);
 
-                if (empty($to)) {
-                    throw CouldNotSendNotification::missingRecipient();
+                    if (empty($to)) {
+                        Log::warning('WhatsApp notification skipped: missing recipient');
+                        return;
+                    }
+
+                    $message->to($to);
                 }
 
-                $message->to($to);
+                $this->whatsApp->sendMessage($message);
+
+                return;
             }
 
-            $this->whatsApp->sendMessage($message);
+            // Plain string content — recipient must come from the notifiable
+            $to = $notifiable->routeNotificationFor('WhatsAppBridge', $notification);
 
-            return;
+            if (empty($to)) {
+                Log::warning('WhatsApp notification skipped: missing recipient');
+                return;
+            }
+
+            $this->whatsApp->sendMessage($to, (string) $message);
+
+        } catch (CouldNotSendNotification $e) {
+            // Bridge is down, timed out, or returned an error.
+            // Log the failure but do NOT rethrow — WhatsApp is a secondary channel
+            // and must never block or crash the primary flow (e.g. SMS + HTTP response).
+            Log::warning('WhatsApp notification failed (non-fatal): ' . $e->getMessage());
         }
-
-        // Plain string content — recipient must come from the notifiable
-        $to = $notifiable->routeNotificationFor('WhatsAppBridge', $notification);
-
-        if (empty($to)) {
-            throw CouldNotSendNotification::missingRecipient();
-        }
-
-        $this->whatsApp->sendMessage($to, (string) $message);
     }
 }
