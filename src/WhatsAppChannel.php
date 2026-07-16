@@ -35,7 +35,7 @@ final class WhatsAppChannel
      *
      * Bridge errors are caught and logged — they never propagate to the caller.
      */
-    public function send(mixed $notifiable, Notification $notification): void
+    public function send($notifiable, Notification $notification): void
     {
         try {
             $message = $notification->toWhatsApp($notifiable);

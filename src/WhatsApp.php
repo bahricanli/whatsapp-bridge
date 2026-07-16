@@ -42,7 +42,7 @@ final class WhatsApp
      *
      * @throws CouldNotSendNotification
      */
-    public function sendMessage(string|WhatsAppMessage $to, string $text = ''): array
+    public function sendMessage($to, string $text = ''): array
     {
         if ($to instanceof WhatsAppMessage) {
             $message = $to;

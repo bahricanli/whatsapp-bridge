@@ -80,17 +80,18 @@ final class WhatsAppMessage
         $digits = preg_replace('/\D/', '', $phone);
 
         // Remove leading 00 (international prefix)
-        if (str_starts_with($digits, '00')) {
+        // str_starts_with() is PHP 8.0+; strpos(...) === 0 is the PHP 7.4-compatible equivalent.
+        if (strpos($digits, '00') === 0) {
             $digits = substr($digits, 2);
         }
 
         // Turkish local number: starts with 0 followed by 5xx  (e.g. 05051234567 → 905051234567)
-        if (str_starts_with($digits, '05') && strlen($digits) === 11) {
+        if (strpos($digits, '05') === 0 && strlen($digits) === 11) {
             $digits = '9' . $digits;   // prepend 9, keep the leading 0  →  90 5xxx
         }
 
         // Turkish local without leading zero: 10 digits starting with 5
-        if (str_starts_with($digits, '5') && strlen($digits) === 10) {
+        if (strpos($digits, '5') === 0 && strlen($digits) === 10) {
             $digits = '90' . $digits;
         }
 

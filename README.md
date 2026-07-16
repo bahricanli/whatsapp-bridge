@@ -17,6 +17,19 @@ Designed as a parallel channel alongside [bahricanli/netgsm](https://github.com/
 - Laravel 8+
 - A running Baileys WhatsApp bridge (see [docker-sip-ai-service/whatsapp-bridge](https://github.com/bahricanli/docker-sip-ai-service))
 
+> **Older projects (PHP 7.4 / Laravel 5.5–7):** use the [`support/php74-laravel5.5`](https://github.com/bahricanli/whatsapp-bridge/tree/support/php74-laravel5.5)
+> branch instead of the Packagist release. It's the same code with PHP 8-only syntax
+> (union types, `mixed`, `str_starts_with()`) removed and `composer.json` constraints
+> widened — no behavior change, same class/method signatures. Require it with:
+> ```json
+> "repositories": [
+>     {"type": "vcs", "url": "https://github.com/bahricanli/whatsapp-bridge"}
+> ],
+> "require": {
+>     "bahricanli/whatsapp-bridge": "dev-support/php74-laravel5.5"
+> }
+> ```
+
 ---
 
 ## Installation
